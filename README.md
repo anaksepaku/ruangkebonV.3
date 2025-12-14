@@ -1,3 +1,5 @@
+testing menggunakan ARMBIAN 5.88 user-built Ubuntu 18.04.6 LTS 5.1.0-aml-s905 ( work ) 
+
 jalankan dengan NODE.JS versi 11 ke atas.
 
 install NPM
