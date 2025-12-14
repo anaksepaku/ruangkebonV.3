@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pH Meter - Ruang Kebon</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        color: #9b59b6;
+      }
+      .back-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .main-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 30px;
+        border-left: 5px solid #9b59b6;
+      }
+      .ph-value {
+        font-size: 4em;
+        font-weight: bold;
+        color: #9b59b6;
+        margin: 20px 0;
+      }
+      .status-card {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      #status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+      .online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f1f1f1;
+      }
+      .controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+      }
+      .ph-scale {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+      .scale-item {
+        text-align: center;
+        flex: 1;
+        padding: 5px;
+      }
+      .scale-acid {
+        background: #e74c3c;
+        color: white;
+      }
+      .scale-neutral {
+        background: #2ecc71;
+        color: white;
+      }
+      .scale-alkaline {
+        background: #3498db;
+        color: white;
+      }
+      .current-ph {
+        background: #9b59b6;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back-button">← Kembali ke Dashboard</a>
+
+      <div class="header">
+        <h1>🧪 pH Meter - Ruang Kebon</h1>
+        <p>Monitoring Tingkat Keasaman Air untuk Pertanian</p>
+      </div>
+
+      <div class="status-card">
+        <h3>Status Perangkat</h3>
+        <div id="status" class="offline">
+          🔴 OFFLINE - Menunggu koneksi perangkat...
+        </div>
+        <div id="deviceInfo">Device ID: Unknown</div>
+        <div id="lastSeen">Last seen: Never</div>
+      </div>
+
+      <div class="main-card">
+        <h2>Nilai pH Saat Ini</h2>
+        <div class="ph-value" id="ph-value">--</div>
+        <div id="ph-status">Status: --</div>
+
+        <div class="ph-scale">
+          <div class="scale-item scale-acid">Asam<br />0 - 6.5</div>
+          <div class="scale-item scale-neutral">Netral<br />6.6 - 7.4</div>
+          <div class="scale-item scale-alkaline">Basa<br />7.5 - 14</div>
+        </div>
+
+        <div id="current-ph-indicator" class="current-ph">
+          Posisi: Menunggu data...
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="loadData()">🔄 Refresh</button>
+        <button onclick="startAutoRefresh()">▶️ Auto Refresh</button>
+        <button onclick="stopAutoRefresh()">⏹️ Stop Auto</button>
+        <button onclick="resetData()">🗑️ Reset Data</button>
+      </div>
+
+      <div class="data-table">
+        <h3>Riwayat 10 Pembacaan Terakhir</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Nilai pH</th>
+              <th>Status</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #e8f4f8;
+          border-radius: 8px;
+        "
+      >
+        <h4>💡 Informasi pH untuk Pertanian:</h4>
+        <p><strong>pH Optimal:</strong> 6.0 - 7.0 (untuk kebanyakan tanaman)</p>
+        <p><strong>pH Asam:</strong> Di bawah 6.0 - perlu penambahan kapur</p>
+        <p><strong>pH Basa:</strong> Di atas 7.5 - perlu penambahan sulfur</p>
+      </div>
+    </div>
+
+    <script>
+      let refreshInterval;
+
+      function loadData() {
+        fetch("/api/latest/ph")
+          .then((response) => response.json())
+          .then((data) => {
+            updateDisplay(data);
+            updateDeviceStatus(data.device_status);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("status").className = "offline";
+            document.getElementById("status").textContent =
+              "❌ ERROR - Tidak dapat terhubung ke server";
+          });
+      }
+
+      function loadHistory() {
+        fetch("/api/all/ph")
+          .then((response) => response.json())
+          .then((data) => {
+            updateTable(data.data.slice(-10));
+          })
+          .catch((error) => {
+            console.error("Error loading history:", error);
+          });
+      }
+
+      function updateDeviceStatus(status) {
+        const statusElement = document.getElementById("status");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+
+        if (status.isOnline) {
+          statusElement.className = "online";
+          statusElement.textContent = "✅ ONLINE - Terhubung ke Sensor pH";
+
+          if (status.lastSeen) {
+            const lastSeen = new Date(status.lastSeen);
+            lastSeenElement.textContent = `Last seen: ${lastSeen.toLocaleString()}`;
+          }
+
+          if (status.deviceId) {
+            deviceInfoElement.textContent = `Device ID: ${status.deviceId}`;
+          }
+        } else {
+          statusElement.className = "offline";
+          statusElement.textContent = "🔴 OFFLINE - Sensor tidak terhubung";
+        }
+      }
+
+      function updateDisplay(data) {
+        if (data.ph !== undefined) {
+          const phValue = data.ph;
+          document.getElementById("ph-value").textContent = phValue.toFixed(2);
+
+          // Update status dan indikator
+          updatePHStatus(phValue);
+          updatePHIndicator(phValue);
+        }
+      }
+
+      function updatePHStatus(phValue) {
+        const statusElement = document.getElementById("ph-status");
+        let status = "";
+        let color = "";
+
+        if (phValue >= 6.0 && phValue <= 7.0) {
+          status = "✅ OPTIMAL - Cocok untuk tanaman";
+          color = "#2ecc71";
+        } else if (phValue >= 5.5 && phValue <= 7.5) {
+          status = "⚠️ DAPAT DITERIMA - Masih dalam batas toleransi";
+          color = "#f39c12";
+        } else if (phValue < 5.5) {
+          status = "❌ TERLALU ASAM - Perlu penambahan kapur";
+          color = "#e74c3c";
+        } else {
+          status = "❌ TERLALU BASA - Perlu penambahan sulfur";
+          color = "#3498db";
+        }
+
+        statusElement.textContent = status;
+        statusElement.style.color = color;
+      }
+
+      function updatePHIndicator(phValue) {
+        const indicator = document.getElementById("current-ph-indicator");
+        let position = "";
+
+        if (phValue <= 6.5) {
+          position = "ASAM";
+          indicator.style.background = "#e74c3c";
+        } else if (phValue <= 7.4) {
+          position = "NETRAL";
+          indicator.style.background = "#2ecc71";
+        } else {
+          position = "BASA";
+          indicator.style.background = "#3498db";
+        }
+
+        indicator.textContent = `Posisi: ${position} (${phValue.toFixed(2)})`;
+      }
+
+      function updateTable(data) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        data.reverse().forEach((item) => {
+          const ph = item.ph || 0;
+          let keterangan = "";
+
+          if (ph >= 6.0 && ph <= 7.0) {
+            keterangan = "Optimal";
+          } else if (ph < 6.0) {
+            keterangan = "Asam";
+          } else {
+            keterangan = "Basa";
+          }
+
+          const row = `<tr>
+                    <td>${item.timestamp || "N/A"}</td>
+                    <td>${ph.toFixed(2)}</td>
+                    <td>${item.deviceId ? "✅ Online" : "❌ Offline"}</td>
+                    <td>${keterangan}</td>
+                </tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      function startAutoRefresh() {
+        refreshInterval = setInterval(() => {
+          loadData();
+          loadHistory();
+        }, 3000);
+        document.getElementById("status").textContent =
+          "🔄 Auto refresh ON (3s)";
+      }
+
+      function stopAutoRefresh() {
+        clearInterval(refreshInterval);
+        loadData(); // Update status terakhir
+      }
+
+      function resetData() {
+        if (confirm("Yakin ingin mereset semua data pH?")) {
+          fetch("/api/reset/ph", { method: "DELETE" })
+            .then(() => {
+              loadData();
+              loadHistory();
+              alert("Data pH berhasil direset!");
+            })
+            .catch((error) => {
+              alert("Error resetting data: " + error);
+            });
+        }
+      }
+
+      // Load data pertama kali
+      loadData();
+      loadHistory();
+
+      // Auto refresh setiap 5 detik
+      setInterval(loadData, 5000);
+      setInterval(loadHistory, 10000);
+
+      // Start auto refresh by default
+      startAutoRefresh();
+    </script>
+  </body>
+</html>

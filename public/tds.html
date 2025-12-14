@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TDS Meter - Ruang Kebon</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        color: #3498db;
+      }
+      .back-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .main-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 30px;
+        border-left: 5px solid #3498db;
+      }
+      .tds-value {
+        font-size: 4em;
+        font-weight: bold;
+        color: #3498db;
+        margin: 20px 0;
+      }
+      .status-card {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      #status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+      .online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f1f1f1;
+      }
+      .controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #2980b9;
+      }
+      .quality-indicator {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 20px;
+        color: white;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      .excellent {
+        background: #27ae60;
+      }
+      .good {
+        background: #2ecc71;
+      }
+      .fair {
+        background: #f39c12;
+      }
+      .poor {
+        background: #e74c3c;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .info-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .refresh-info {
+        text-align: center;
+        margin: 10px 0;
+        color: #666;
+        font-size: 0.9em;
+      }
+      .auto-refresh-active {
+        background-color: #e8f4f8;
+        border: 1px solid #3498db;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back-button">← Kembali ke Dashboard</a>
+
+      <div class="header">
+        <h1>💧 TDS Meter - Ruang Kebon</h1>
+        <p>Monitoring Kualitas Air untuk Pertanian Hidroponik</p>
+      </div>
+
+      <div class="status-card">
+        <h3>Status Perangkat</h3>
+        <div id="status" class="offline">
+          🔴 OFFLINE - Menunggu koneksi perangkat...
+        </div>
+        <div id="deviceInfo">Device ID: Unknown</div>
+        <div id="lastSeen">Last seen: Never</div>
+      </div>
+
+      <div class="main-card">
+        <h2>Total Dissolved Solids (TDS)</h2>
+        <div class="tds-value" id="tds-value">
+          --<span style="font-size: 0.5em"> ppm</span>
+        </div>
+        <div id="tds-status" class="quality-indicator">Status: --</div>
+        <div id="temperature" style="margin-top: 10px; color: #666">
+          Suhu Air: -- °C
+        </div>
+        <div id="wifi-rssi" style="margin-top: 5px; color: #666">
+          Sinyal WiFi: -- dBm
+        </div>
+        <div id="timestamp" style="margin-top: 5px; color: #999; font-size: 0.9em">
+          Terakhir diperbarui: --
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="info-card" style="border-left: 4px solid #27ae60">
+          <h4>💎 Excellent</h4>
+          <p>0 - 50 ppm</p>
+          <small>Air Murni</small>
+        </div>
+        <div class="info-card" style="border-left: 4px solid #2ecc71">
+          <h4>👍 Good</h4>
+          <p>51 - 200 ppm</p>
+          <small>Air Bersih</small>
+        </div>
+        <div class="info-card" style="border-left: 4px solid #f39c12">
+          <h4>⚠️ Fair</h4>
+          <p>201 - 500 ppm</p>
+          <small>Air Layak</small>
+        </div>
+        <div class="info-card" style="border-left: 4px solid #e74c3c">
+          <h4>❌ Poor</h4>
+          <p>> 500 ppm</p>
+          <small>Air Terkontaminasi</small>
+        </div>
+      </div>
+
+      <div class="refresh-info">
+        <div id="refreshStatus" class="auto-refresh-active">
+          🔄 Auto Refresh: <strong>AKTIF</strong> (setiap 2 detik)
+        </div>
+        <div id="lastUpdateTime" style="margin-top: 5px; color: #999;">
+          Pembaruan terakhir: --
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="loadData()">🔄 Refresh Data</button>
+        <button onclick="startAutoRefresh()">▶️ Start Auto Refresh</button>
+        <button onclick="stopAutoRefresh()">⏹️ Stop Auto Refresh</button>
+        <button onclick="loadHistory()">📊 Muat Riwayat</button>
+      </div>
+
+      <div class="data-table">
+        <h3>Riwayat 10 Pembacaan Terakhir</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>TDS (ppm)</th>
+              <th>Suhu (°C)</th>
+              <th>WiFi RSSI</th>
+              <th>Kualitas</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #e8f4f8;
+          border-radius: 8px;
+        "
+      >
+        <h4>💡 Panduan TDS untuk Hidroponik:</h4>
+        <p><strong>Sayuran Daun:</strong> 800-1200 ppm</p>
+        <p><strong>Buah-buahan:</strong> 1200-1800 ppm</p>
+        <p><strong>Tanaman Berbuah:</strong> 1400-2100 ppm</p>
+        <p><strong>PPM terlalu tinggi:</strong> Tambah air bersih</p>
+        <p><strong>PPM terlalu rendah:</strong> Tambah nutrisi</p>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = 'http://172.16.0.76:3000';
+      const TDS_API_URL = `${API_BASE_URL}/api/latest/tds`;
+      const HISTORY_API_URL = `${API_BASE_URL}/api/all/tds`;
+      
+      // Konfigurasi interval
+      const AUTO_REFRESH_INTERVAL = 2000; // 2 detik dalam milidetik
+      const HISTORY_REFRESH_INTERVAL = 10000; // 10 detik untuk history
+      
+      let refreshInterval;
+      let historyRefreshInterval;
+      let historyData = [];
+      let isAutoRefreshActive = true;
+      let lastUpdateTime = null;
+
+      // ========== FUNGSI UTAMA ==========
+
+      function loadData() {
+        fetch(TDS_API_URL)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Data received:', data);
+            updateDisplay(data);
+            updateDeviceStatus(data.device_status || {});
+            updateLastUpdateTime();
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+            showErrorState();
+          });
+      }
+
+      function loadHistory() {
+        fetch(HISTORY_API_URL)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Simpan data history untuk digunakan nanti
+            historyData = Array.isArray(data) ? data : (data.data || []);
+            updateTable(historyData.slice(-10));
+          })
+          .catch((error) => {
+            console.error("Error loading history:", error);
+            document.getElementById("tableBody").innerHTML = 
+              `<tr><td colspan="6" style="text-align: center; color: #999;">Gagal memuat riwayat</td></tr>`;
+          });
+      }
+
+      function updateDeviceStatus(status) {
+        const statusElement = document.getElementById("status");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+
+        if (status.isOnline) {
+          statusElement.className = "online";
+          statusElement.textContent = "✅ ONLINE - Terhubung ke Sensor TDS";
+
+          if (status.lastSeen) {
+            const lastSeen = new Date(status.lastSeen);
+            lastSeenElement.textContent = `Terakhir terlihat: ${lastSeen.toLocaleString('id-ID')}`;
+          }
+
+          if (status.deviceId) {
+            deviceInfoElement.textContent = `Device ID: ${status.deviceId}`;
+          }
+        } else {
+          statusElement.className = "offline";
+          statusElement.textContent = "🔴 OFFLINE - Sensor tidak terhubung";
+        }
+      }
+
+      function updateDisplay(data) {
+        console.log('Updating display with data:', data);
+        
+        // Gunakan tds_value jika tds adalah 0 atau tidak ada
+        const tdsValue = data.tds && data.tds > 0 ? data.tds : data.tds_value;
+        
+        if (tdsValue !== undefined && tdsValue !== null) {
+          document.getElementById("tds-value").innerHTML =
+            tdsValue + '<span style="font-size: 0.5em;"> ppm</span>';
+
+          // Update suhu - gunakan temperature jika suhu_air adalah 0 atau tidak ada
+          const temperature = data.suhu_air && data.suhu_air > 0 ? data.suhu_air : data.temperature;
+          document.getElementById("temperature").textContent = 
+            `Suhu Air: ${(temperature || 0).toFixed(1)} °C`;
+
+          // Update WiFi RSSI
+          if (data.wifi_rssi) {
+            let wifiStrength = "Kuat";
+            let wifiColor = "#27ae60";
+            
+            if (data.wifi_rssi >= -50) {
+              wifiStrength = "Sangat Kuat";
+              wifiColor = "#27ae60";
+            } else if (data.wifi_rssi >= -60) {
+              wifiStrength = "Kuat";
+              wifiColor = "#2ecc71";
+            } else if (data.wifi_rssi >= -70) {
+              wifiStrength = "Cukup";
+              wifiColor = "#f39c12";
+            } else {
+              wifiStrength = "Lemah";
+              wifiColor = "#e74c3c";
+            }
+            
+            document.getElementById("wifi-rssi").innerHTML = 
+              `Sinyal WiFi: <span style="color: ${wifiColor}; font-weight: bold;">${data.wifi_rssi} dBm (${wifiStrength})</span>`;
+          }
+
+          // Update timestamp
+          if (data.date && data.timestamp) {
+            document.getElementById("timestamp").textContent = 
+              `Terakhir diperbarui: ${data.date} ${data.timestamp}`;
+          } else if (data.unix_timestamp) {
+            const date = new Date(data.unix_timestamp);
+            document.getElementById("timestamp").textContent = 
+              `Terakhir diperbarui: ${date.toLocaleString('id-ID')}`;
+          }
+
+          // Update kualitas air
+          updateTDSStatus(tdsValue);
+        } else {
+          console.warn('TDS value is undefined or null');
+        }
+      }
+
+      function updateTDSStatus(tdsValue) {
+        const statusElement = document.getElementById("tds-status");
+        let status = "";
+        let quality = "";
+
+        if (tdsValue <= 50) {
+          status = "💎 EXCELLENT - Air Murni";
+          quality = "excellent";
+        } else if (tdsValue <= 200) {
+          status = "👍 GOOD - Air Bersih";
+          quality = "good";
+        } else if (tdsValue <= 500) {
+          status = "⚠️ FAIR - Air Layak";
+          quality = "fair";
+        } else {
+          status = "❌ POOR - Air Terkontaminasi";
+          quality = "poor";
+        }
+
+        statusElement.textContent = status;
+        statusElement.className = `quality-indicator ${quality}`;
+      }
+
+      function updateTable(data) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = 
+            `<tr><td colspan="6" style="text-align: center; color: #999;">Belum ada data riwayat</td></tr>`;
+          return;
+        }
+
+        // Urutkan dari yang terbaru ke terlama
+        data.slice().reverse().forEach((item) => {
+          // Gunakan tds_value jika tds adalah 0 atau tidak ada
+          const tdsValue = item.tds && item.tds > 0 ? item.tds : item.tds_value;
+          const temperature = item.suhu_air && item.suhu_air > 0 ? item.suhu_air : item.temperature;
+          
+          let kualitas = "";
+          let qualityClass = "";
+          if (tdsValue <= 50) {
+            kualitas = "Excellent";
+            qualityClass = "excellent";
+          } else if (tdsValue <= 200) {
+            kualitas = "Good";
+            qualityClass = "good";
+          } else if (tdsValue <= 500) {
+            kualitas = "Fair";
+            qualityClass = "fair";
+          } else {
+            kualitas = "Poor";
+            qualityClass = "poor";
+          }
+
+          const row = `<tr>
+                    <td>${item.date || "N/A"}</td>
+                    <td>${item.timestamp || "N/A"}</td>
+                    <td><strong>${tdsValue || 0} ppm</strong></td>
+                    <td>${(temperature || 0).toFixed(1)} °C</td>
+                    <td>${item.wifi_rssi || "N/A"}</td>
+                    <td><span class="quality-indicator ${qualityClass}">${kualitas}</span></td>
+                </tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      // ========== FUNGSI AUTO REFRESH ==========
+
+      function startAutoRefresh() {
+        if (refreshInterval) {
+          clearInterval(refreshInterval);
+        }
+        
+        refreshInterval = setInterval(() => {
+          loadData();
+        }, AUTO_REFRESH_INTERVAL);
+        
+        isAutoRefreshActive = true;
+        updateRefreshStatus();
+        
+        console.log(`Auto refresh diaktifkan dengan interval ${AUTO_REFRESH_INTERVAL}ms`);
+      }
+
+      function stopAutoRefresh() {
+        if (refreshInterval) {
+          clearInterval(refreshInterval);
+          refreshInterval = null;
+        }
+        
+        isAutoRefreshActive = false;
+        updateRefreshStatus();
+        loadData(); // Update status terakhir
+        
+        console.log('Auto refresh dihentikan');
+      }
+
+      function updateRefreshStatus() {
+        const refreshStatusElement = document.getElementById("refreshStatus");
+        
+        if (isAutoRefreshActive) {
+          refreshStatusElement.innerHTML = '🔄 Auto Refresh: <strong>AKTIF</strong> (setiap 2 detik)';
+          refreshStatusElement.className = 'auto-refresh-active';
+        } else {
+          refreshStatusElement.innerHTML = '⏸️ Auto Refresh: <strong>NON-AKTIF</strong>';
+          refreshStatusElement.style.backgroundColor = '#f8d7da';
+          refreshStatusElement.style.border = '1px solid #f5c6cb';
+          refreshStatusElement.style.color = '#721c24';
+        }
+      }
+
+      function updateLastUpdateTime() {
+        lastUpdateTime = new Date();
+        const timeString = lastUpdateTime.toLocaleTimeString('id-ID');
+        document.getElementById("lastUpdateTime").textContent = 
+          `Pembaruan terakhir: ${timeString}`;
+      }
+
+      function clearHistory() {
+        if (confirm("Yakin ingin menghapus riwayat yang ditampilkan? (Ini hanya menghapus dari tampilan)")) {
+          historyData = [];
+          updateTable([]);
+          alert("Riwayat berhasil dihapus dari tampilan!");
+        }
+      }
+
+      // ========== INISIALISASI ==========
+
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard TDS dimuat...');
+        console.log(`Konfigurasi: Auto refresh setiap ${AUTO_REFRESH_INTERVAL}ms`);
+        
+        // Load data pertama kali
+        loadData();
+        loadHistory();
+        
+        // Mulai auto refresh secara otomatis
+        startAutoRefresh();
+        
+        // Auto refresh untuk history setiap 10 detik
+        historyRefreshInterval = setInterval(() => {
+          loadHistory();
+        }, HISTORY_REFRESH_INTERVAL);
+        
+        // Update status refresh
+        updateRefreshStatus();
+      });
+
+      // Tambahkan style untuk kualitas di tabel
+      const style = document.createElement('style');
+      style.textContent = `
+        .quality-indicator.excellent { 
+          background: #27ae60; 
+          color: white; 
+          padding: 4px 12px; 
+          border-radius: 12px; 
+          font-size: 0.85em; 
+          display: inline-block; 
+        }
+        .quality-indicator.good { 
+          background: #2ecc71; 
+          color: white; 
+          padding: 4px 12px; 
+          border-radius: 12px; 
+          font-size: 0.85em; 
+          display: inline-block; 
+        }
+        .quality-indicator.fair { 
+          background: #f39c12; 
+          color: white; 
+          padding: 4px 12px; 
+          border-radius: 12px; 
+          font-size: 0.85em; 
+          display: inline-block; 
+        }
+        .quality-indicator.poor { 
+          background: #e74c3c; 
+          color: white; 
+          padding: 4px 12px; 
+          border-radius: 12px; 
+          font-size: 0.85em; 
+          display: inline-block; 
+        }
+        .quality-indicator { 
+          background: #95a5a6; 
+          color: white; 
+          padding: 4px 12px; 
+          border-radius: 12px; 
+          font-size: 0.85em; 
+          display: inline-block; 
+        }
+        .auto-refresh-active {
+          background-color: #e8f4f8;
+          border: 1px solid #3498db;
+          padding: 8px 15px;
+          border-radius: 5px;
+          display: inline-block;
+          color: #3498db;
+          font-size: 0.9em;
+        }
+      `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+</html>

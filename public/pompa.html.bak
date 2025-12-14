@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kontrol Pompa - Ruang Kebon</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        color: #2ecc71;
+      }
+      .back-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .control-panel {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 30px;
+        border-left: 5px solid #2ecc71;
+      }
+      .pompa-status {
+        font-size: 3em;
+        font-weight: bold;
+        margin: 20px 0;
+        padding: 20px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+      }
+      .pompa-on {
+        background: #d4edda;
+        color: #155724;
+        border: 3px solid #28a745;
+      }
+      .pompa-off {
+        background: #f8d7da;
+        color: #721c24;
+        border: 3px solid #dc3545;
+      }
+      .control-buttons {
+        margin: 30px 0;
+      }
+      .btn {
+        padding: 15px 30px;
+        margin: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+      .btn-on {
+        background: #28a745;
+        color: white;
+      }
+      .btn-on:hover {
+        background: #218838;
+        transform: scale(1.05);
+      }
+      .btn-off {
+        background: #dc3545;
+        color: white;
+      }
+      .btn-off:hover {
+        background: #c82333;
+        transform: scale(1.05);
+      }
+      .btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .status-card {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      #status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+      .online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f1f1f1;
+      }
+      .auto-control {
+        margin: 20px 0;
+        padding: 20px;
+        background: #e8f4f8;
+        border-radius: 10px;
+      }
+      .schedule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        margin: 5px 0;
+        background: white;
+        border-radius: 5px;
+      }
+      .blink {
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .device-warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-size: 0.9em;
+      }
+      .sync-status {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin-left: 10px;
+      }
+      .sync-ok {
+        background: #d4edda;
+        color: #155724;
+      }
+      .sync-warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .connection-status {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .connection-online {
+        background: #28a745;
+        animation: pulse 2s infinite;
+      }
+      .connection-offline {
+        background: #dc3545;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .history-empty {
+        text-align: center;
+        color: #666;
+        padding: 20px;
+        font-style: italic;
+      }
+      
+      /* CSS untuk kontrol jadwal otomatis */
+      .schedule-config {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      
+      .time-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin: 15px 0;
+      }
+      
+      .time-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .time-input label {
+        min-width: 70px;
+        font-weight: bold;
+      }
+      
+      .time-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      
+      .time-controls input {
+        width: 60px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 1em;
+      }
+      
+      .time-controls input:focus {
+        outline: none;
+        border-color: #2ecc71;
+        box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+      }
+      
+      .schedule-preview {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-size: 0.9em;
+      }
+      
+      .schedule-preview p {
+        margin: 5px 0;
+      }
+      
+      .schedule-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+      }
+      
+      .btn-save {
+        background: #2ecc71 !important;
+        color: white !important;
+      }
+      
+      .btn-save:hover {
+        background: #27ae60 !important;
+      }
+      
+      .btn-reset {
+        background: #ffc107 !important;
+        color: #212529 !important;
+      }
+      
+      .btn-reset:hover {
+        background: #e0a800 !important;
+      }
+      
+      .btn-delete {
+        background: #dc3545 !important;
+        color: white !important;
+      }
+      
+      .btn-delete:hover {
+        background: #c82333 !important;
+      }
+      
+      .current-schedule {
+        background: #e8f4f8;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      
+      .schedule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+      }
+      
+      .schedule-item:last-child {
+        border-bottom: none;
+      }
+      
+      #schedule-status-indicator {
+        font-weight: bold;
+        color: #17a2b8;
+      }
+      
+      .schedule-active {
+        color: #28a745 !important;
+        animation: blink 1s infinite;
+      }
+      
+      .schedule-inactive {
+        color: #6c757d;
+      }
+      
+      .schedule-info {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-size: 0.85em;
+        color: #666;
+      }
+      
+      .quick-schedule {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+      }
+      
+      .quick-schedule-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      
+      .quick-schedule-btn {
+        padding: 8px 15px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+      }
+      
+      .quick-schedule-btn:hover {
+        background: #5a6268;
+      }
+      
+      .schedule-test-controls {
+        background: #e9ecef;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back-button">← Kembali ke Dashboard</a>
+
+      <div class="header">
+        <h1>🔌 Kontrol Pompa Air - Ruang Kebon</h1>
+        <p>Sistem Kontrol Otomatis dan Manual Pengairan Kebun</p>
+      </div>
+
+      <div class="status-card">
+        <h3>Status Sistem Pompa</h3>
+        <div id="status" class="offline">
+          <span class="connection-status connection-offline"></span>
+          🔴 OFFLINE - Menunggu koneksi perangkat pompa...
+        </div>
+        <div id="deviceInfo">Device ID: --</div>
+        <div id="lastSeen">Last seen: --</div>
+        <div id="connectionTime">Connection time: --</div>
+        <div
+          id="syncStatus"
+          class="sync-status sync-warning"
+          style="display: none"
+        >
+          ⚠️ Menunggu sinkronisasi status...
+        </div>
+        <div id="deviceWarning" class="device-warning" style="display: none">
+          ⚠️ Device pompa khusus belum terdeteksi. Pastikan ESP32 pompa
+          terhubung.
+        </div>
+      </div>
+
+      <div class="control-panel">
+        <h2>Status Pompa Saat Ini</h2>
+        <div id="pompa-status" class="pompa-off">🔴 POMPA MATI</div>
+
+        <div id="pompa-info">
+          <p>Mode: <span id="pompa-mode">--</span></p>
+          <p>Status Aktual: <span id="actual-status">--</span></p>
+          <p>Terakhir diupdate: <span id="last-updated">--</span></p>
+        </div>
+
+        <div class="control-buttons">
+          <button
+            class="btn btn-on"
+            onclick="controlPompa('on')"
+            id="btn-on"
+            disabled
+          >
+            🚀 NYALAKAN POMPA
+          </button>
+          <button
+            class="btn btn-off"
+            onclick="controlPompa('off')"
+            id="btn-off"
+            disabled
+          >
+            ⏹️ MATIKAN POMPA
+          </button>
+        </div>
+
+        <div class="auto-control">
+          <h3>⏰ Kontrol Otomatis (Server-side Scheduling)</h3>
+          
+          <div class="schedule-config">
+            <h4>📅 Konfigurasi Jadwal</h4>
+            
+            <div class="time-input-group">
+              <div class="time-input">
+                <label for="start-hour">Mulai:</label>
+                <div class="time-controls">
+                  <input type="number" id="start-hour" min="0" max="23" value="6" placeholder="Jam">
+                  <span>:</span>
+                  <input type="number" id="start-minute" min="0" max="59" value="0" placeholder="Menit">
+                  <span>:</span>
+                  <input type="number" id="start-second" min="0" max="59" value="0" placeholder="Detik">
+                </div>
+              </div>
+              
+              <div class="time-input">
+                <label for="end-hour">Selesai:</label>
+                <div class="time-controls">
+                  <input type="number" id="end-hour" min="0" max="23" value="6" placeholder="Jam">
+                  <span>:</span>
+                  <input type="number" id="end-minute" min="0" max="59" value="15" placeholder="Menit">
+                  <span>:</span>
+                  <input type="number" id="end-second" min="0" max="59" value="0" placeholder="Detik">
+                </div>
+              </div>
+            </div>
+            
+            <div class="schedule-preview">
+              <p>Jadwal: <span id="schedule-preview">06:00:00 - 06:15:00</span></p>
+              <p>Durasi: <span id="duration-preview">15 menit 0 detik</span></p>
+            </div>
+            
+            <div class="schedule-actions">
+              <button class="btn btn-save" onclick="saveSchedule()" id="btn-save">
+                💾 Simpan Jadwal
+              </button>
+              <button class="btn btn-reset" onclick="resetScheduleInputs()" id="btn-reset">
+                🔄 Reset Input
+              </button>
+              <button class="btn btn-delete" onclick="deleteSchedule()" id="btn-delete" disabled>
+                🗑️ Hapus Jadwal
+              </button>
+              <button class="btn" onclick="toggleAutoMode()" id="btn-auto" disabled>
+                🔄 Aktifkan Mode Otomatis
+              </button>
+            </div>
+            
+            <div id="schedule-status" style="margin-top: 10px; font-size: 0.9em;"></div>
+            
+            <div class="quick-schedule">
+              <h5>⏱️ Jadwal Cepat (Testing):</h5>
+              <p><small>Set jadwal untuk testing waktu tertentu:</small></p>
+              <div class="quick-schedule-buttons">
+                <button class="quick-schedule-btn" onclick="setQuickSchedule(1)">1 menit dari sekarang</button>
+                <button class="quick-schedule-btn" onclick="setQuickSchedule(5)">5 menit dari sekarang</button>
+                <button class="quick-schedule-btn" onclick="setQuickSchedule(10)">10 menit dari sekarang</button>
+                <button class="quick-schedule-btn" onclick="setQuickSchedule(30)">30 menit dari sekarang</button>
+                <button class="quick-schedule-btn" onclick="setTestScheduleNow()">Mulai Sekarang (5 menit)</button>
+              </div>
+            </div>
+            
+            <div class="schedule-test-controls">
+              <h5>🧪 Test Manual Trigger:</h5>
+              <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="quick-schedule-btn" onclick="triggerScheduleNow()" style="background: #28a745;">
+                  🚀 Trigger Jadwal Sekarang
+                </button>
+                <button class="quick-schedule-btn" onclick="stopScheduleNow()" style="background: #dc3545;">
+                  ⏹️ Stop Jadwal Sekarang
+                </button>
+              </div>
+            </div>
+            
+            <div class="schedule-info">
+              <small>ℹ️ Jadwal disimpan di server. Server akan otomatis mengirim perintah ke ESP32 saat waktunya tiba.</small>
+            </div>
+          </div>
+          
+          <div class="current-schedule">
+            <h4>📋 Jadwal Aktif di Server</h4>
+            <div class="schedule-item">
+              <span>Waktu Mulai:</span>
+              <span id="current-start">--:--:--</span>
+            </div>
+            <div class="schedule-item">
+              <span>Waktu Selesai:</span>
+              <span id="current-end">--:--:--</span>
+            </div>
+            <div class="schedule-item">
+              <span>Status:</span>
+              <span id="schedule-status-indicator">⏳ Tidak ada jadwal aktif</span>
+            </div>
+            <div class="schedule-item">
+              <span>Mode:</span>
+              <span id="schedule-mode">--</span>
+            </div>
+            <div class="schedule-item">
+              <span>Waktu Server:</span>
+              <span id="server-time">--:--:--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-table">
+        <h3>Riwayat Kontrol Pompa</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Status</th>
+              <th>Mode</th>
+              <th>Dikontrol Oleh</th>
+              <th>Sumber</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #fff3cd;
+          border-radius: 8px;
+        "
+      >
+        <h4>⚠️ Perhatian:</h4>
+        <p>
+          • Dashboard akan selalu menampilkan status AKTUAL dari ESP32 pompa
+        </p>
+        <p>
+          • Status ONLINE hanya jika ESP32 pompa aktif mengirim data dalam 10
+          detik terakhir
+        </p>
+        <p>• Kontrol manual hanya bekerja ketika status ONLINE</p>
+        <p>• Jadwal otomatis disimpan di SERVER (tidak di ESP32)</p>
+        <p>• ESP32 harus polling server untuk mendapatkan perintah jadwal</p>
+        <p>• Gunakan "Jadwal Cepat" untuk testing waktu tertentu</p>
+      </div>
+    </div>
+
+    <script>
+      let refreshInterval;
+      let isAutoMode = false;
+      let currentPompaStatus = false;
+      let isPompaDeviceOnline = false;
+      let lastPompaData = null;
+      let isSynced = false;
+      let lastSuccessfulUpdate = 0;
+      const OFFLINE_THRESHOLD = 15000; // 15 detik tanpa update = offline
+      let historyLog = []; // Array untuk menyimpan riwayat lokal
+      const MAX_HISTORY_ITEMS = 20; // Maksimal riwayat yang disimpan
+      
+      // Variabel untuk jadwal
+      let currentSchedule = null;
+      let isScheduleActive = false;
+      let scheduleCheckInterval = null;
+      let deviceId = "POMPA_DEVICE"; // Default device ID
+
+      // PERBAIKAN: Load data khusus untuk device pompa
+      function loadData() {
+        fetch("/api/status/all")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("📊 All Status Data:", data);
+            processPompaData(data);
+            checkConnectionTimeout();
+          })
+          .catch((error) => {
+            console.error("Error fetching status:", error);
+            setOfflineStatus();
+          });
+      }
+
+      // PERBAIKAN BARU: Cek timeout koneksi
+      function checkConnectionTimeout() {
+        const now = Date.now();
+        if (
+          lastSuccessfulUpdate > 0 &&
+          now - lastSuccessfulUpdate > OFFLINE_THRESHOLD
+        ) {
+          console.log("🕒 Connection timeout detected");
+          setOfflineStatus();
+        }
+      }
+
+      // PERBAIKAN: Process data khusus untuk device pompa dengan timeout detection
+      function processPompaData(data) {
+        const pompaSensor = data.sensors.pompa;
+
+        console.log("🔧 Pompa Sensor Data:", pompaSensor);
+
+        // PERBAIKAN: Cek apakah data pompa valid dan fresh
+        const isDataFresh = isPompaDataFresh(pompaSensor);
+
+        if (
+          isDataFresh &&
+          pompaSensor.data &&
+          Object.keys(pompaSensor.data).length > 0
+        ) {
+          // Ada device pompa online dengan data fresh
+          isPompaDeviceOnline = true;
+          lastSuccessfulUpdate = Date.now();
+
+          updateDeviceStatus({
+            isOnline: true,
+            lastSeen: pompaSensor.lastUpdate,
+            deviceId: pompaSensor.data.deviceId || "POMPA_DEVICE",
+          });
+
+          lastPompaData = pompaSensor.data;
+          updateDisplayFromESP32(pompaSensor.data);
+          checkSyncStatus(pompaSensor.data);
+          
+          // PERBAIKAN: Tambahkan data ke riwayat lokal jika ada perubahan
+          addToHistoryFromData(pompaSensor.data, "system");
+          
+        } else {
+          // Tidak ada device pompa online atau data tidak fresh
+          isPompaDeviceOnline = false;
+          setOfflineStatus();
+        }
+
+        // PERBAIKAN: Load history dari localStorage
+        loadHistory();
+        
+        // Load jadwal dari server (meskipun device offline)
+        loadScheduleFromServer();
+        
+        // Update device ID dari data terakhir
+        if (lastPompaData && lastPompaData.deviceId) {
+          deviceId = lastPompaData.deviceId;
+        }
+      }
+
+      // PERBAIKAN BARU: Cek kesegaran data pompa
+      function isPompaDataFresh(pompaSensor) {
+        if (!pompaSensor || !pompaSensor.lastUpdate) return false;
+
+        const lastUpdate = new Date(pompaSensor.lastUpdate).getTime();
+        const now = Date.now();
+        const dataAge = now - lastUpdate;
+
+        console.log("🕒 Data age: " + dataAge + "ms");
+
+        // Data dianggap fresh jika kurang dari 10 detik
+        return dataAge < 10000;
+      }
+
+      // PERBAIKAN: Update device status khusus pompa
+      function updateDeviceStatus(status) {
+        const statusElement = document.getElementById("status");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+        const warningElement = document.getElementById("deviceWarning");
+        const connectionTimeElement = document.getElementById("connectionTime");
+        const connectionIndicator =
+          statusElement.querySelector(".connection-status");
+
+        if (status.isOnline && isPompaDeviceOnline) {
+          statusElement.className = "online";
+          connectionIndicator.className = "connection-status connection-online";
+          statusElement.innerHTML = '<span class="connection-status connection-online"></span>✅ ONLINE - Terhubung ke Kontroler Pompa';
+
+          if (status.lastSeen) {
+            const lastSeen = new Date(status.lastSeen);
+            const now = new Date();
+            const diffSeconds = Math.round((now - lastSeen) / 1000);
+            lastSeenElement.textContent = "Last seen: " + lastSeen.toLocaleString() + " (" + diffSeconds + " detik lalu)";
+
+            // Hitung waktu koneksi
+            const connectionDuration = Math.round((now - lastSeen) / 1000);
+            connectionTimeElement.textContent = "Connection time: " + connectionDuration + " detik";
+          }
+
+          if (status.deviceId) {
+            deviceInfoElement.textContent = "Device ID: " + status.deviceId;
+          }
+
+          warningElement.style.display = "none";
+
+          // Enable kontrol buttons
+          document.getElementById("btn-on").disabled = false;
+          document.getElementById("btn-off").disabled = false;
+          document.getElementById("btn-auto").disabled = false;
+        } else {
+          setOfflineStatus();
+        }
+      }
+
+      // PERBAIKAN: Set status offline
+      function setOfflineStatus() {
+        const statusElement = document.getElementById("status");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const warningElement = document.getElementById("deviceWarning");
+        const connectionTimeElement = document.getElementById("connectionTime");
+        const syncElement = document.getElementById("syncStatus");
+
+        isPompaDeviceOnline = false;
+        lastSuccessfulUpdate = 0;
+
+        statusElement.className = "offline";
+        const connectionIndicator =
+          statusElement.querySelector(".connection-status") ||
+          document.createElement("span");
+        connectionIndicator.className = "connection-status connection-offline";
+        statusElement.innerHTML = '<span class="connection-status connection-offline"></span>🔴 OFFLINE - Kontroler Pompa tidak terhubung';
+
+        deviceInfoElement.textContent = "Device ID: --";
+        lastSeenElement.textContent = "Last seen: --";
+        connectionTimeElement.textContent = "Connection time: --";
+        syncElement.style.display = "none";
+
+        // Tampilkan warning
+        warningElement.style.display = "block";
+        warningElement.innerHTML =
+          "⚠️ Device pompa offline. Pastikan ESP32 pompa menyala dan terhubung WiFi";
+
+        // Disable kontrol buttons
+        document.getElementById("btn-on").disabled = true;
+        document.getElementById("btn-off").disabled = true;
+        document.getElementById("btn-auto").disabled = true;
+
+        // Set pompa status to OFF
+        document.getElementById("pompa-status").className =
+          "pompa-status pompa-off";
+        document.getElementById("pompa-status").innerHTML = "🔴 POMPA MATI";
+        document.getElementById("pompa-mode").textContent = "--";
+        document.getElementById("actual-status").textContent = "OFFLINE";
+        document.getElementById("actual-status").style.color = "#dc3545";
+        document.getElementById("last-updated").textContent = "--";
+      }
+
+      // PERBAIKAN BARU: Update display berdasarkan data aktual dari ESP32
+      function updateDisplayFromESP32(data) {
+        console.log("🔄 Update Display from ESP32:", data);
+
+        if (data.status !== undefined) {
+          const pompaStatus = document.getElementById("pompa-status");
+          const actualStatusElement = document.getElementById("actual-status");
+
+          // SELALU update status berdasarkan data dari ESP32
+          currentPompaStatus = data.status;
+
+          if (data.status) {
+            // Pompa ON - Status dari ESP32
+            pompaStatus.className = "pompa-status pompa-on";
+            pompaStatus.innerHTML = "💧 POMPA MENYALA";
+            actualStatusElement.textContent = "ON (Dari ESP32)";
+            actualStatusElement.style.color = "#28a745";
+          } else {
+            // Pompa OFF - Status dari ESP32
+            pompaStatus.className = "pompa-status pompa-off";
+            pompaStatus.innerHTML = "🔴 POMPA MATI";
+            actualStatusElement.textContent = "OFF (Dari ESP32)";
+            actualStatusElement.style.color = "#dc3545";
+          }
+
+          // Update button states berdasarkan status aktual
+          updateButtonStates();
+
+          document.getElementById("pompa-mode").textContent =
+            data.mode || "manual";
+          document.getElementById("last-updated").textContent =
+            new Date().toLocaleTimeString();
+
+          isAutoMode = data.mode === "auto";
+          updateAutoButton();
+        }
+      }
+
+      // PERBAIKAN: Update state tombol berdasarkan status aktual
+      function updateButtonStates() {
+        const btnOn = document.getElementById("btn-on");
+        const btnOff = document.getElementById("btn-off");
+
+        if (currentPompaStatus) {
+          // Pompa sedang ON
+          btnOn.disabled = true;
+          btnOff.disabled = false;
+        } else {
+          // Pompa sedang OFF
+          btnOn.disabled = false;
+          btnOff.disabled = true;
+        }
+      }
+
+      // PERBAIKAN BARU: Cek status sinkronisasi
+      function checkSyncStatus(data) {
+        const syncElement = document.getElementById("syncStatus");
+
+        if (data && data.status !== undefined) {
+          syncElement.style.display = "inline-block";
+          syncElement.className = "sync-status sync-ok";
+          syncElement.textContent = "✅ Status tersinkronisasi";
+          isSynced = true;
+        } else {
+          syncElement.style.display = "inline-block";
+          syncElement.className = "sync-status sync-warning";
+          syncElement.textContent = "⚠️ Menunggu data status...";
+          isSynced = false;
+        }
+      }
+
+      // PERBAIKAN: Fungsi untuk menambahkan data ke riwayat lokal dari data ESP32
+      function addToHistoryFromData(data, controlledBy) {
+        // Cek apakah data valid
+        if (!data || data.status === undefined) return;
+        
+        // Buat entry riwayat
+        const historyEntry = {
+          timestamp: new Date().toLocaleTimeString(),
+          status: data.status,
+          mode: data.mode || "manual",
+          controlled_by: controlledBy || "system",
+          source: controlledBy === "web-dashboard" ? "Dashboard" : "ESP32",
+          deviceId: data.deviceId || "POMPA_DEVICE"
+        };
+        
+        // Cek apakah entry sudah ada (mencegah duplikat dalam waktu singkat)
+        const lastEntry = historyLog[0];
+        const now = Date.now();
+        const isDuplicate = lastEntry && 
+          lastEntry.status === historyEntry.status && 
+          lastEntry.mode === historyEntry.mode &&
+          (now - lastEntry._timestamp) < 5000; // 5 detik
+        
+        if (!isDuplicate) {
+          // Tambahkan timestamp internal
+          historyEntry._timestamp = now;
+          
+          // Tambahkan ke array riwayat
+          historyLog.unshift(historyEntry);
+          
+          // Batasi jumlah riwayat
+          if (historyLog.length > MAX_HISTORY_ITEMS) {
+            historyLog = historyLog.slice(0, MAX_HISTORY_ITEMS);
+          }
+          
+          // Simpan ke localStorage
+          saveHistoryToStorage();
+          
+          // Update tabel
+          updateTable(historyLog);
+        }
+      }
+
+      // PERBAIKAN: Load history dari localStorage
+      function loadHistory() {
+        try {
+          const savedHistory = localStorage.getItem('pompaHistory');
+          if (savedHistory) {
+            historyLog = JSON.parse(savedHistory) || [];
+            console.log("📖 History loaded from localStorage:", historyLog.length, "items");
+            updateTable(historyLog);
+          } else {
+            console.log("📖 No history found in localStorage");
+            updateTable([]);
+          }
+        } catch (error) {
+          console.error("Error loading history from localStorage:", error);
+          updateTable([]);
+        }
+      }
+
+      // PERBAIKAN: Save history ke localStorage
+      function saveHistoryToStorage() {
+        try {
+          localStorage.setItem('pompaHistory', JSON.stringify(historyLog));
+        } catch (error) {
+          console.error("Error saving history to localStorage:", error);
+        }
+      }
+
+      // PERBAIKAN: Kontrol pompa - hanya mengirim perintah, status akan update otomatis
+      function controlPompa(action) {
+        if (!isPompaDeviceOnline) {
+          showNotification(
+            "❌ Device pompa offline, tidak dapat mengontrol",
+            "error"
+          );
+          return;
+        }
+
+        const button =
+          action === "on"
+            ? document.getElementById("btn-on")
+            : document.getElementById("btn-off");
+        const originalText = button.innerHTML;
+
+        button.innerHTML = "⏳ Mengirim perintah...";
+        button.disabled = true;
+
+        // PERBAIKAN: Tampilkan status "menunggu konfirmasi"
+        const pompaStatus = document.getElementById("pompa-status");
+        const actualStatusElement = document.getElementById("actual-status");
+
+        if (action === "on") {
+          pompaStatus.className = "pompa-status pompa-on blink";
+          pompaStatus.innerHTML = "⏳ MENYALAKAN...";
+          actualStatusElement.textContent = "Menunggu konfirmasi ESP32...";
+          actualStatusElement.style.color = "#ffc107";
+        } else {
+          pompaStatus.className = "pompa-status pompa-off blink";
+          pompaStatus.innerHTML = "⏳ MEMATIKAN...";
+          actualStatusElement.textContent = "Menunggu konfirmasi ESP32...";
+          actualStatusElement.style.color = "#ffc107";
+        }
+
+        fetch("/api/pompa/control", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: action,
+            mode: "manual",
+            deviceId: deviceId
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            button.innerHTML = originalText;
+            console.log("✅ Control response:", data);
+
+            showNotification(
+              "Perintah " + (action === "on" ? "nyala" : "mati") + " dikirim ke ESP32",
+              "success"
+            );
+
+            // PERBAIKAN: Tambahkan ke riwayat lokal
+            addToHistoryFromData({
+              status: action === "on",
+              mode: "manual",
+              deviceId: deviceId
+            }, "web-dashboard");
+
+            // Status akan update otomatis via refresh berikutnya
+          })
+          .catch((error) => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+
+            // Kembalikan status sebelumnya jika gagal
+            if (lastPompaData) {
+              updateDisplayFromESP32(lastPompaData);
+            }
+
+            showNotification("Gagal mengirim perintah ke ESP32", "error");
+            console.error("Error:", error);
+          });
+      }
+
+      function toggleAutoMode() {
+        if (!isPompaDeviceOnline) {
+          showNotification(
+            "❌ Device pompa offline, tidak dapat mengubah mode",
+            "error"
+          );
+          return;
+        }
+
+        const mode = isAutoMode ? "manual" : "auto";
+
+        fetch("/api/pompa/control", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: currentPompaStatus ? "on" : "off",
+            mode: mode,
+            deviceId: deviceId
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            showNotification("Mode " + mode + " dikirim ke ESP32", "success");
+            
+            // PERBAIKAN: Tambahkan ke riwayat lokal
+            addToHistoryFromData({
+              status: currentPompaStatus,
+              mode: mode,
+              deviceId: deviceId
+            }, "web-dashboard");
+            
+            // Update tampilan
+            isAutoMode = (mode === "auto");
+            updateAutoButton();
+          })
+          .catch((error) => {
+            showNotification("Gagal mengubah mode", "error");
+            console.error("Error:", error);
+          });
+      }
+
+      function updateAutoButton() {
+        const btnAuto = document.getElementById("btn-auto");
+        if (isAutoMode) {
+          btnAuto.innerHTML = "⏹️ Nonaktifkan Mode Otomatis";
+          btnAuto.style.background = "#dc3545";
+        } else {
+          btnAuto.innerHTML = "🔄 Aktifkan Mode Otomatis";
+          btnAuto.style.background = "#28a745";
+        }
+      }
+
+      // ==================== FUNGSI JADWAL BARU ====================
+      
+      // Fungsi untuk mengupdate preview jadwal
+      function updateSchedulePreview() {
+        const startHour = parseInt(document.getElementById('start-hour').value) || 0;
+        const startMinute = parseInt(document.getElementById('start-minute').value) || 0;
+        const startSecond = parseInt(document.getElementById('start-second').value) || 0;
+        
+        const endHour = parseInt(document.getElementById('end-hour').value) || 0;
+        const endMinute = parseInt(document.getElementById('end-minute').value) || 0;
+        const endSecond = parseInt(document.getElementById('end-second').value) || 0;
+        
+        // Format waktu untuk preview
+        const startTime = formatTime(startHour, startMinute, startSecond);
+        const endTime = formatTime(endHour, endMinute, endSecond);
+        
+        document.getElementById('schedule-preview').textContent = startTime + " - " + endTime;
+        
+        // Hitung durasi
+        const startTotalSeconds = startHour * 3600 + startMinute * 60 + startSecond;
+        const endTotalSeconds = endHour * 3600 + endMinute * 60 + endSecond;
+        let durationSeconds = endTotalSeconds - startTotalSeconds;
+        
+        if (durationSeconds < 0) {
+          durationSeconds += 24 * 3600; // Jika melewati tengah malam
+        }
+        
+        const hours = Math.floor(durationSeconds / 3600);
+        const minutes = Math.floor((durationSeconds % 3600) / 60);
+        const seconds = durationSeconds % 60;
+        
+        let durationText = '';
+        if (hours > 0) durationText += hours + " jam ";
+        if (minutes > 0) durationText += minutes + " menit ";
+        durationText += seconds + " detik";
+        
+        document.getElementById('duration-preview').textContent = durationText;
+      }
+      
+      // Helper function untuk format waktu
+      function formatTime(hours, minutes, seconds) {
+        const pad = function(num) {
+          return num < 10 ? '0' + num : num;
+        };
+        return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+      }
+      
+      // Fungsi untuk reset input waktu ke default
+      function resetScheduleInputs() {
+        document.getElementById('start-hour').value = 6;
+        document.getElementById('start-minute').value = 0;
+        document.getElementById('start-second').value = 0;
+        
+        document.getElementById('end-hour').value = 6;
+        document.getElementById('end-minute').value = 15;
+        document.getElementById('end-second').value = 0;
+        
+        updateSchedulePreview();
+        showNotification("🔄 Input waktu direset ke default", "info");
+      }
+      
+      // Fungsi untuk menyimpan jadwal ke SERVER
+      function saveSchedule() {
+        const scheduleData = {
+          start: {
+            hour: parseInt(document.getElementById('start-hour').value) || 0,
+            minute: parseInt(document.getElementById('start-minute').value) || 0,
+            second: parseInt(document.getElementById('start-second').value) || 0
+          },
+          end: {
+            hour: parseInt(document.getElementById('end-hour').value) || 0,
+            minute: parseInt(document.getElementById('end-minute').value) || 0,
+            second: parseInt(document.getElementById('end-second').value) || 0
+          }
+        };
+        
+        const btnSave = document.getElementById('btn-save');
+        const originalText = btnSave.innerHTML;
+        
+        btnSave.innerHTML = "⏳ Menyimpan ke server...";
+        btnSave.disabled = true;
+        
+        // Kirim ke SERVER
+        fetch("/api/pompa/schedule", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            deviceId: deviceId,
+            schedule: scheduleData,
+            action: "set_schedule"
+          }),
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          btnSave.innerHTML = originalText;
+          btnSave.disabled = false;
+          
+          if (data.success) {
+            showNotification("✅ Jadwal disimpan di server", "success");
+            
+            // Update tampilan lokal
+            currentSchedule = scheduleData;
+            updateCurrentScheduleDisplay();
+            
+            // Enable tombol delete
+            document.getElementById('btn-delete').disabled = false;
+            
+            // Load ulang jadwal dari server
+            loadScheduleFromServer();
+            
+            // Log ke history
+            addToHistoryFromData({
+              status: currentPompaStatus,
+              mode: "auto",
+              deviceId: deviceId,
+              action: "set_schedule",
+              schedule: scheduleData
+            }, "web-dashboard");
+            
+          } else {
+            showNotification("❌ " + (data.message || "Gagal menyimpan"), "error");
+          }
+        })
+        .catch(function(error) {
+          btnSave.innerHTML = originalText;
+          btnSave.disabled = false;
+          showNotification("❌ Gagal terhubung ke server", "error");
+          console.error("Error:", error);
+        });
+      }
+      
+      // Fungsi untuk menghapus jadwal dari server
+      function deleteSchedule() {
+        if (!confirm("Apakah Anda yakin ingin menghapus jadwal ini dari server?")) {
+          return;
+        }
+        
+        const btnDelete = document.getElementById('btn-delete');
+        const originalText = btnDelete.innerHTML;
+        
+        btnDelete.innerHTML = "⏳ Menghapus...";
+        btnDelete.disabled = true;
+        
+        fetch("/api/pompa/schedule/" + deviceId + "?action=delete", {
+          method: "DELETE"
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          btnDelete.innerHTML = originalText;
+          
+          if (data.success) {
+            showNotification("🗑️ Jadwal berhasil dihapus dari server", "success");
+            
+            // Reset tampilan
+            currentSchedule = null;
+            document.getElementById('current-start').textContent = "--:--:--";
+            document.getElementById('current-end').textContent = "--:--:--";
+            document.getElementById('schedule-status-indicator').textContent = "⏳ Tidak ada jadwal aktif";
+            document.getElementById('schedule-status-indicator').className = "";
+            document.getElementById('schedule-status-indicator').style.color = "#6c757d";
+            document.getElementById('schedule-mode').textContent = "--";
+            
+            // Disable tombol delete
+            document.getElementById('btn-delete').disabled = true;
+            
+            // Reset input ke default
+            resetScheduleInputs();
+            
+            // Log ke history
+            addToHistoryFromData({
+              status: currentPompaStatus,
+              mode: "manual",
+              deviceId: deviceId,
+              action: "delete_schedule"
+            }, "web-dashboard");
+            
+          } else {
+            showNotification("❌ Gagal menghapus jadwal", "error");
+            btnDelete.disabled = false;
+          }
+        })
+        .catch(function(error) {
+          btnDelete.innerHTML = originalText;
+          btnDelete.disabled = false;
+          showNotification("❌ Gagal terhubung ke server", "error");
+          console.error("Error:", error);
+        });
+      }
+      
+      // Fungsi untuk load jadwal dari server
+      function loadScheduleFromServer() {
+        fetch("/api/pompa/schedule/" + deviceId)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          if (data.success && data.schedule) {
+            currentSchedule = data.schedule;
+            updateCurrentScheduleDisplay();
+            
+            // Update input fields
+            if (currentSchedule.start) {
+              document.getElementById('start-hour').value = currentSchedule.start.hour;
+              document.getElementById('start-minute').value = currentSchedule.start.minute;
+              document.getElementById('start-second').value = currentSchedule.start.second;
+            }
+            
+            if (currentSchedule.end) {
+              document.getElementById('end-hour').value = currentSchedule.end.hour;
+              document.getElementById('end-minute').value = currentSchedule.end.minute;
+              document.getElementById('end-second').value = currentSchedule.end.second;
+            }
+            
+            updateSchedulePreview();
+            updateScheduleStatus(data);
+            
+            // Enable tombol delete
+            document.getElementById('btn-delete').disabled = false;
+            
+            console.log("📅 Jadwal dimuat dari server:", currentSchedule);
+          } else {
+            console.log("📅 Tidak ada jadwal di server");
+            // Reset tampilan jika tidak ada jadwal
+            document.getElementById('current-start').textContent = "--:--:--";
+            document.getElementById('current-end').textContent = "--:--:--";
+            document.getElementById('schedule-status-indicator').textContent = "⏳ Tidak ada jadwal aktif";
+            document.getElementById('schedule-status-indicator').className = "";
+            document.getElementById('schedule-status-indicator').style.color = "#6c757d";
+            document.getElementById('schedule-mode').textContent = "--";
+            
+            // Disable tombol delete
+            document.getElementById('btn-delete').disabled = true;
+          }
+        })
+        .catch(function(error) {
+          console.error("Error loading schedule:", error);
+        });
+      }
+      
+      // Update tampilan jadwal saat ini
+      function updateCurrentScheduleDisplay() {
+        if (!currentSchedule) return;
+        
+        const startTime = formatTime(currentSchedule.start.hour, currentSchedule.start.minute, currentSchedule.start.second);
+        const endTime = formatTime(currentSchedule.end.hour, currentSchedule.end.minute, currentSchedule.end.second);
+        
+        document.getElementById('current-start').textContent = startTime;
+        document.getElementById('current-end').textContent = endTime;
+        
+        // Update mode
+        document.getElementById('schedule-mode').textContent = currentSchedule.isActive ? "Aktif" : "Nonaktif";
+        document.getElementById('schedule-mode').style.color = currentSchedule.isActive ? "#28a745" : "#dc3545";
+      }
+      
+      // Update status jadwal
+      function updateScheduleStatus(scheduleData) {
+        const indicator = document.getElementById('schedule-status-indicator');
+        
+        if (!scheduleData || !scheduleData.schedule) {
+          indicator.textContent = "⏳ Tidak ada jadwal aktif";
+          indicator.className = "";
+          indicator.style.color = "#6c757d";
+          return;
+        }
+        
+        const schedule = scheduleData.schedule;
+        const status = scheduleData.status;
+        
+        if (status === "running") {
+          indicator.textContent = "💧 Menyiram...";
+          indicator.className = "schedule-active";
+          indicator.style.color = "#28a745";
+        } else if (status === "within_schedule") {
+          indicator.textContent = "⏰ Dalam waktu jadwal";
+          indicator.className = "";
+          indicator.style.color = "#17a2b8";
+        } else if (status === "waiting") {
+          const nextRun = scheduleData.nextRunSeconds || 0;
+          const hours = Math.floor(nextRun / 3600);
+          const minutes = Math.floor((nextRun % 3600) / 60);
+          const seconds = nextRun % 60;
+          
+          indicator.textContent = "⏳ " + formatTime(hours, minutes, seconds) + " lagi";
+          indicator.className = "";
+          indicator.style.color = "#6c757d";
+        } else {
+          indicator.textContent = "⏳ Tidak aktif";
+          indicator.className = "";
+          indicator.style.color = "#6c757d";
+        }
+      }
+      
+      // Fungsi untuk set jadwal cepat (testing)
+      function setQuickSchedule(minutesFromNow) {
+        const now = new Date();
+        const startTime = new Date(now.getTime() + (minutesFromNow * 60000));
+        const endTime = new Date(startTime.getTime() + (5 * 60000)); // 5 menit durasi
+        
+        document.getElementById('start-hour').value = startTime.getHours();
+        document.getElementById('start-minute').value = startTime.getMinutes();
+        document.getElementById('start-second').value = startTime.getSeconds();
+        
+        document.getElementById('end-hour').value = endTime.getHours();
+        document.getElementById('end-minute').value = endTime.getMinutes();
+        document.getElementById('end-second').value = endTime.getSeconds();
+        
+        updateSchedulePreview();
+        
+        showNotification("⏱️ Jadwal diatur " + minutesFromNow + " menit dari sekarang", "info");
+      }
+      
+      // Fungsi untuk set jadwal mulai sekarang
+      function setTestScheduleNow() {
+        const now = new Date();
+        const endTime = new Date(now.getTime() + (5 * 60000)); // 5 menit dari sekarang
+        
+        document.getElementById('start-hour').value = now.getHours();
+        document.getElementById('start-minute').value = now.getMinutes();
+        document.getElementById('start-second').value = now.getSeconds();
+        
+        document.getElementById('end-hour').value = endTime.getHours();
+        document.getElementById('end-minute').value = endTime.getMinutes();
+        document.getElementById('end-second').value = endTime.getSeconds();
+        
+        updateSchedulePreview();
+        
+        showNotification("🚀 Jadwal diatur mulai sekarang (5 menit)", "info");
+      }
+      
+      // Fungsi untuk trigger jadwal sekarang (manual override)
+      function triggerScheduleNow() {
+        if (!isPompaDeviceOnline) {
+          showNotification("❌ Device pompa offline, tidak dapat trigger", "error");
+          return;
+        }
+        
+        // Kirim perintah ON ke ESP32
+        fetch("/api/pompa/control", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "on",
+            mode: "auto",
+            deviceId: deviceId,
+            source: "manual_trigger"
+          }),
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          showNotification("🚀 Trigger manual dikirim ke ESP32", "success");
+          
+          // Update status jadwal
+          document.getElementById('schedule-status-indicator').textContent = "💧 Trigger Manual";
+          document.getElementById('schedule-status-indicator').className = "schedule-active";
+          document.getElementById('schedule-status-indicator').style.color = "#28a745";
+          
+          // Log ke history
+          addToHistoryFromData({
+            status: true,
+            mode: "auto",
+            deviceId: deviceId,
+            action: "manual_trigger"
+          }, "web-dashboard");
+        })
+        .catch(function(error) {
+          showNotification("❌ Gagal trigger manual", "error");
+          console.error("Error:", error);
+        });
+      }
+      
+      // Fungsi untuk stop jadwal sekarang (manual override)
+      function stopScheduleNow() {
+        if (!isPompaDeviceOnline) {
+          showNotification("❌ Device pompa offline, tidak dapat stop", "error");
+          return;
+        }
+        
+        // Kirim perintah OFF ke ESP32
+        fetch("/api/pompa/control", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "off",
+            mode: "auto",
+            deviceId: deviceId,
+            source: "manual_stop"
+          }),
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          showNotification("⏹️ Stop manual dikirim ke ESP32", "success");
+          
+          // Update status jadwal
+          document.getElementById('schedule-status-indicator').textContent = "⏹️ Dihentikan Manual";
+          document.getElementById('schedule-status-indicator').className = "";
+          document.getElementById('schedule-status-indicator').style.color = "#dc3545";
+          
+          // Log ke history
+          addToHistoryFromData({
+            status: false,
+            mode: "auto",
+            deviceId: deviceId,
+            action: "manual_stop"
+          }, "web-dashboard");
+        })
+        .catch(function(error) {
+          showNotification("❌ Gagal stop manual", "error");
+          console.error("Error:", error);
+        });
+      }
+      
+      // Update waktu server
+      function updateServerTime() {
+        const now = new Date();
+        const serverTime = formatTime(now.getHours(), now.getMinutes(), now.getSeconds());
+        document.getElementById('server-time').textContent = serverTime;
+      }
+
+      // PERBAIKAN: Fungsi updateTable yang baru
+      function updateTable(data) {
+        const tbody = document.getElementById("tableBody");
+        
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="history-empty">
+                📭 Belum ada riwayat kontrol pompa
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Buat salinan dan reverse untuk tampilan (terbaru di atas)
+        const displayData = data.slice(0, 10); // Ambil 10 terbaru
+        
+        tbody.innerHTML = "";
+
+        displayData.forEach(function(item) {
+          const status = item.status ? 
+            '<span style="color: #28a745; font-weight: bold;">💧 MENYALA</span>' : 
+            '<span style="color: #dc3545; font-weight: bold;">🔴 MATI</span>';
+          
+          const mode = item.mode === "auto" ? 
+            '<span style="color: #17a2b8;">⏰ AUTO</span>' : 
+            '<span style="color: #6c757d;">👋 MANUAL</span>';
+          
+          const source = item.controlled_by === "web-dashboard" ? 
+            '<span style="color: #007bff;">🌐 Dashboard</span>' : 
+            '<span style="color: #28a745;">🤖 ESP32</span>';
+          
+          const controlledBy = item.controlled_by === "web-dashboard" ? 
+            "Web Dashboard" : "System";
+
+          const row = `
+            <tr>
+              <td>${item.timestamp || "N/A"}</td>
+              <td>${status}</td>
+              <td>${mode}</td>
+              <td>${controlledBy}</td>
+              <td>${source}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      function showNotification(message, type) {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                font-weight: bold;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+
+        if (type === "success") {
+          notification.style.background = "#28a745";
+        } else if (type === "error") {
+          notification.style.background = "#dc3545";
+        } else if (type === "info") {
+          notification.style.background = "#17a2b8";
+        } else {
+          notification.style.background = "#6c757d";
+        }
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(function() {
+          notification.remove();
+        }, 3000);
+      }
+
+      function startAutoRefresh() {
+        refreshInterval = setInterval(function() {
+          loadData();
+        }, 3000); // PERBAIKAN: Refresh setiap 3 detik (lebih ringan)
+      }
+
+      // ==================== INISIALISASI ====================
+      
+      // Event listeners untuk input waktu
+      document.addEventListener('DOMContentLoaded', function() {
+        // Tambahkan event listeners untuk input waktu
+        const timeInputs = [
+          'start-hour', 'start-minute', 'start-second',
+          'end-hour', 'end-minute', 'end-second'
+        ];
+        
+        timeInputs.forEach(function(id) {
+          const element = document.getElementById(id);
+          if (element) {
+            element.addEventListener('input', updateSchedulePreview);
+            element.addEventListener('change', function() {
+              // Validasi input
+              const value = parseInt(this.value);
+              const max = this.id.includes('hour') ? 23 : 59;
+              const min = 0;
+              
+              if (isNaN(value) || value < min) this.value = min;
+              if (value > max) this.value = max;
+              
+              updateSchedulePreview();
+            });
+          }
+        });
+        
+        // Inisialisasi preview
+        updateSchedulePreview();
+        
+        // Load jadwal dari server
+        setTimeout(loadScheduleFromServer, 1000);
+        
+        // Update waktu server setiap detik
+        setInterval(updateServerTime, 1000);
+        updateServerTime();
+      });
+
+      // Load data pertama kali
+      loadData();
+
+      // Start auto refresh
+      startAutoRefresh();
+
+      // Cek connection timeout setiap 5 detik
+      setInterval(checkConnectionTimeout, 5000);
+
+      // Debug function
+      window.debugPompa = function () {
+        console.log("🔧 Debug Pompa Status:");
+        console.log("- Pompa Device Online:", isPompaDeviceOnline);
+        console.log("- Current Status:", currentPompaStatus);
+        console.log("- Auto Mode:", isAutoMode);
+        console.log("- Last Data:", lastPompaData);
+        console.log("- Is Synced:", isSynced);
+        console.log("- Last Successful Update:", lastSuccessfulUpdate);
+        console.log(
+          "- Time Since Last Update:",
+          Date.now() - lastSuccessfulUpdate
+        );
+        console.log("- History Items:", historyLog.length);
+        console.log("- History:", historyLog);
+        console.log("- Current Schedule:", currentSchedule);
+        console.log("- Device ID:", deviceId);
+        loadData();
+      };
+    </script>
+  </body>
+</html>

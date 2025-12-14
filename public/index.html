@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ruang Kebon - Smart Farming Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        background-image: url("img/bg.jpg");
+        background-size: cover;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        color: rgb(255, 255, 255);
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .header h4 {
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .header p {
+        font-size: 1.2em;
+        opacity: 0.9;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .sensor-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .sensor-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .card-icon {
+        font-size: 2em;
+        margin-right: 15px;
+      }
+
+      .card-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #3498db;
+        margin-bottom: 5px;
+      }
+
+      .unit {
+        font-size: 0.8em;
+        color: #7f8c8d;
+        margin-left: 5px;
+      }
+
+      .status {
+        font-size: 0.9em;
+        padding: 5px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .online {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .no-data {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+
+      .navigation {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .nav-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: white;
+        text-decoration: none;
+        transition: background 0.3s ease;
+      }
+
+      .nav-card:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .last-update {
+        text-align: center;
+        color: white;
+        margin-top: 20px;
+        font-size: 0.9em;
+        opacity: 0.8;
+      }
+
+      .system-status {
+         background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: white;
+        text-decoration: none;
+      }
+
+      .device-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 0.8em;
+        color: white;
+      }
+
+      /* Warna khusus untuk setiap sensor */
+      .power-card {
+        border-left: 5px solid #e74c3c;
+      }
+      .suhu-card {
+        border-left: 5px solid #e67e22;
+      }
+      .ph-card {
+        border-left: 5px solid #9b59b6;
+      }
+      .tds-card {
+        border-left: 5px solid #3498db;
+      }
+      .pompa-card {
+        border-left: 5px solid #2ecc71;
+      }
+
+      .power-card .value {
+        color: #e74c3c;
+      }
+      .suhu-card .value {
+        color: #e67e22;
+      }
+      .ph-card .value {
+        color: #9b59b6;
+      }
+      .tds-card .value {
+        color: #3498db;
+      }
+      .pompa-card .value {
+        color: #2ecc71;
+      }
+
+      .blink {
+        animation: blink 2s infinite;
+      }
+
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .sensor-age {
+        font-size: 0.7em;
+        color: #666;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🌱 Ruang Kebon</h1>
+        <h4>Smart Farming Monitoring System</h4>
+      </div>
+
+      <div class="system-status">
+        <div id="system-status">🔄 Memeriksa status sistem...</div>
+        <div id="connected-devices">
+          Sensor aktif: <span id="sensor-count">0</span> dari <span id="total-sensors">5</span>
+        </div>
+        <div id="device-info" class="device-info">
+          Device: <span id="device-id">--</span> | 
+          Status: <span id="device-status">--</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <a href="power.html" class="sensor-card power-card">
+          <div class="card-header">
+            <div class="card-icon">⚡</div>
+            <div class="card-title">Power Monitor</div>
+          </div>
+          <div class="value" id="power-value">
+            --<span class="unit">W</span>
+          </div>
+          <div>Konsumsi Daya Listrik</div>
+          <div class="status offline" id="power-status">
+            <span class="blink">🔴</span> OFFLINE
+          </div>
+          <div class="sensor-age" id="power-age"></div>
+        </a>
+
+        <a href="suhu.html" class="sensor-card suhu-card">
+          <div class="card-header">
+            <div class="card-icon">🌡️</div>
+            <div class="card-title">Suhu & Kelembaban</div>
+          </div>
+          <div class="value" id="suhu-value">
+            --<span class="unit">°C</span>
+          </div>
+          <div>Kondisi Lingkungan</div>
+          <div class="status offline" id="suhu-status">
+            <span class="blink">🔴</span> OFFLINE
+          </div>
+          <div class="sensor-age" id="suhu-age"></div>
+        </a>
+
+        <a href="ph.html" class="sensor-card ph-card">
+          <div class="card-header">
+            <div class="card-icon">🧪</div>
+            <div class="card-title">pH Meter</div>
+          </div>
+          <div class="value" id="ph-value">--<span class="unit">pH</span></div>
+          <div>Tingkat Keasaman</div>
+          <div class="status offline" id="ph-status">
+            <span class="blink">🔴</span> OFFLINE
+          </div>
+          <div class="sensor-age" id="ph-age"></div>
+        </a>
+
+        <a href="tds.html" class="sensor-card tds-card">
+          <div class="card-header">
+            <div class="card-icon">💧</div>
+            <div class="card-title">TDS Meter</div>
+          </div>
+          <div class="value" id="tds-value">
+            --<span class="unit">ppm</span>
+          </div>
+          <div>Kualitas Air</div>
+          <div class="status offline" id="tds-status">
+            <span class="blink">🔴</span> OFFLINE
+          </div>
+          <div class="sensor-age" id="tds-age"></div>
+        </a>
+
+        <a href="pompa.html" class="sensor-card pompa-card">
+          <div class="card-header">
+            <div class="card-icon">🔌</div>
+            <div class="card-title">Kontrol Pompa</div>
+          </div>
+          <div class="value" id="pompa-value">OFF</div>
+          <div>Status Pengairan</div>
+          <div class="status offline" id="pompa-status">
+            <span class="blink">🔴</span> OFFLINE
+          </div>
+          <div class="sensor-age" id="pompa-age"></div>
+        </a>
+      </div>
+
+      <div class="navigation">
+        <a href="power.html" class="nav-card">📊 Detail Power</a>
+        <a href="suhu.html" class="nav-card">🌡️ Detail Suhu</a>
+        <a href="ph.html" class="nav-card">🧪 Detail pH</a>
+        <a href="tds.html" class="nav-card">💧 Detail TDS</a>
+        <a href="pompa.html" class="nav-card">🔌 Kontrol Pompa</a>
+      </div>
+
+      <div class="last-update" id="last-update">Terakhir update: --</div>
+    </div>
+
+    <script>
+  const sensors = ["power", "suhu", "ph", "tds", "pompa"];
+  const SENSOR_TIMEOUT = 30000;
+  let activeSensors = 0;
+
+  async function updateDashboard() {
+    const updateTime = new Date().toLocaleTimeString();
+    document.getElementById("last-update").textContent = `Terakhir update: ${updateTime}`;
+
+    activeSensors = 0;
+
+    try {
+      // Gunakan endpoint status/all
+      const response = await fetch('/api/status/all');
+      const data = await response.json();
+      
+      console.log('📊 Status Data:', data); // Debug log
+      
+      // Update device info
+      updateDeviceInfo(data.device_status);
+      
+      // Update setiap sensor
+      sensors.forEach(sensor => {
+        const sensorData = data.sensors[sensor];
+        const isOnline = sensorData.online;
+        
+        if (isOnline) {
+          activeSensors++;
+          updateSensorDisplay(sensor, sensorData.data, true);
+        } else {
+          updateSensorDisplay(sensor, {}, false);
+        }
+      });
+
+      updateSystemStatus();
+      
+    } catch (error) {
+      console.error('❌ Error fetching data:', error);
+      // Set semua offline jika error
+      sensors.forEach(sensor => {
+        updateSensorDisplay(sensor, {}, false);
+      });
+      updateSystemStatus();
+    }
+  }
+
+  function updateDeviceInfo(deviceStatus) {
+    const deviceIdElement = document.getElementById('device-id');
+    const deviceStatusElement = document.getElementById('device-status');
+    
+    if (deviceStatus && deviceStatus.deviceId) {
+      deviceIdElement.textContent = deviceStatus.deviceId;
+      deviceStatusElement.textContent = deviceStatus.isOnline ? 'ONLINE' : 'OFFLINE';
+      deviceStatusElement.style.color = deviceStatus.isOnline ? '#51cf66' : '#ff6b6b';
+    }
+  }
+
+  function updateSensorDisplay(sensor, data, isOnline) {
+    const statusElement = document.getElementById(`${sensor}-status`);
+    const valueElement = document.getElementById(`${sensor}-value`);
+
+    if (isOnline) {
+      statusElement.className = "status online";
+      statusElement.innerHTML = "🟢 ONLINE";
+
+      switch (sensor) {
+        case "power":
+          const power = data.power || 0;
+          valueElement.innerHTML = `${power.toFixed(1)}<span class="unit">W</span>`;
+          console.log(`⚡ Power: ${power}W`); // Debug
+          break;
+        case "suhu":
+          const suhu = data.suhu || 0;
+          valueElement.innerHTML = `${suhu.toFixed(1)}<span class="unit">°C</span>`;
+          break;
+        case "ph":
+          const ph = data.ph || 0;
+          valueElement.innerHTML = `${ph.toFixed(1)}<span class="unit">pH</span>`;
+          break;
+        case "tds":
+          const tds = data.tds || 0;
+          valueElement.innerHTML = `${tds}<span class="unit">ppm</span>`;
+          break;
+        case "pompa":
+          valueElement.textContent = data.status ? "ON" : "OFF";
+          break;
+      }
+    } else {
+      statusElement.className = "status offline";
+      statusElement.innerHTML = '<span class="blink">🔴</span> OFFLINE';
+      
+      if (sensor !== "pompa") {
+        valueElement.innerHTML = `--<span class="unit">${
+          sensor === "power" ? "W" : 
+          sensor === "suhu" ? "°C" : 
+          sensor === "ph" ? "pH" : "ppm"
+        }</span>`;
+      } else {
+        valueElement.textContent = "OFF";
+      }
+    }
+  }
+
+  function updateSystemStatus() {
+    const systemStatusElement = document.getElementById("system-status");
+    const sensorCountElement = document.getElementById("sensor-count");
+
+    sensorCountElement.textContent = activeSensors;
+
+    if (activeSensors === 0) {
+      systemStatusElement.innerHTML = "🔴 <strong>SISTEM OFFLINE</strong> - Tidak ada sensor aktif";
+      systemStatusElement.style.color = "#ff6b6b";
+    } else if (activeSensors === sensors.length) {
+      systemStatusElement.innerHTML = "🟢 <strong>SISTEM ONLINE</strong> - Semua sensor aktif";
+      systemStatusElement.style.color = "#51cf66";
+    } else {
+      systemStatusElement.innerHTML = `🟡 <strong>SISTEM SEBAGIAN</strong> - ${activeSensors} dari ${sensors.length} sensor aktif`;
+      systemStatusElement.style.color = "#ffd43b";
+    }
+  }
+
+  // Update setiap 3 detik
+  setInterval(updateDashboard, 3000);
+  updateDashboard(); // Initial load
+</script>
+  </body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Power Monitor - Ruang Kebon</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        color: #e74c3c;
+      }
+      .back-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        min-width: 120px;
+        text-align: center;
+      }
+      .status-card {
+        width: 100%;
+  	text-align: left;
+  	margin-bottom: 20px;
+  	background: white;
+  	padding: 20px;
+  	border-radius: 10px;
+  	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+  	/* OPSI: Border yang lebih tipis */
+  	border-left: 3px solid #e74c3c; 
+      }
+
+      .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #e74c3c;
+      }
+      .unit {
+        font-size: 14px;
+        color: #7f8c8d;
+      }
+      #status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+      .online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f1f1f1;
+      }
+      .controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+      }
+      .device-warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        font-size: 0.9em;
+      }
+      .connection-status {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .connection-online {
+        background: #28a745;
+        animation: pulse 2s infinite;
+      }
+      .connection-offline {
+        background: #dc3545;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .sync-status {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        margin-left: 10px;
+      }
+      .sync-ok {
+        background: #d4edda;
+        color: #155724;
+      }
+      .sync-warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back-button">← Kembali ke Dashboard</a>
+
+      <div class="header">
+        <h1>⚡ Power Monitor - Ruang Kebon</h1>
+        <p>Monitoring Konsumsi Daya Listrik</p>
+      </div>
+
+      <div class="status-card">
+        <h3>Status Perangkat Power Monitor</h3>
+        <div id="status" class="offline">
+          <span class="connection-status connection-offline"></span>
+          🔴 OFFLINE - Menunggu koneksi perangkat power...
+        </div>
+        <div id="deviceInfo">Device ID: --</div>
+        <div id="lastSeen">Last seen: --</div>
+        <div id="connectionTime">Connection time: --</div>
+        <div id="syncStatus" class="sync-status sync-warning" style="display: none;">
+          ⚠️ Menunggu data sensor...
+        </div>
+        <div id="deviceWarning" class="device-warning" style="display: none;">
+          ⚠️ Device power monitor (ESP32_5447A11F8A3C) belum terdeteksi.
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Voltage</h3>
+          <div class="value" id="voltage">--<span class="unit">V</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Current</h3>
+          <div class="value" id="current">--<span class="unit">A</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Power</h3>
+          <div class="value" id="power">--<span class="unit">W</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Energy</h3>
+          <div class="value" id="energy">--<span class="unit">kWh</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Frequency</h3>
+          <div class="value" id="frequency">--<span class="unit">Hz</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Power Factor</h3>
+          <div class="value" id="powerFactor">--</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="loadData()">🔄 Refresh</button>
+        <button onclick="startAutoRefresh()">▶️ Auto Refresh</button>
+        <button onclick="stopAutoRefresh()">⏹️ Stop Auto</button>
+        <button onclick="resetData()">🗑️ Reset Data</button>
+      </div>
+
+      <div class="data-table">
+        <h3>Riwayat 10 Pembacaan Terakhir</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Device ID</th>
+              <th>Voltage (V)</th>
+              <th>Current (A)</th>
+              <th>Power (W)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px;">
+        <h4>⚠️ Perhatian:</h4>
+        <p>• Dashboard hanya menampilkan data dari device: <strong>ESP32_5447A11F8A3C</strong></p>
+        <p>• Status ONLINE hanya jika device tersebut aktif mengirim data dalam 15 detik terakhir</p>
+        <p>• Device lain tidak akan ditampilkan di halaman ini</p>
+      </div>
+    </div>
+
+    <script>
+      let refreshInterval;
+      let isPowerDeviceOnline = false;
+      let lastPowerData = null;
+      let lastSuccessfulUpdate = 0;
+      const OFFLINE_THRESHOLD = 15000; // 15 detik tanpa update = offline
+      const TARGET_DEVICE_ID = "ESP32_5447A11F8A3C"; // Device ID spesifik
+
+      function loadData() {
+        fetch("/api/status/all")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("📊 All Status Data:", data);
+            processPowerData(data);
+            checkConnectionTimeout();
+          })
+          .catch((error) => {
+            console.error("Error fetching status:", error);
+            setOfflineStatus();
+          });
+      }
+
+      // PERBAIKAN: Process data khusus untuk device ESP32_5447A11F8A3C
+      function processPowerData(data) {
+        const powerSensor = data.sensors.power;
+        
+        console.log("🔧 Power Sensor Data:", powerSensor);
+
+        // Cek apakah data power valid dan fresh dari device yang ditarget
+        const isDataFresh = isPowerDataFresh(powerSensor);
+        const targetDevice = findTargetDevice(data);
+        
+        if (isDataFresh && targetDevice && powerSensor.data && Object.keys(powerSensor.data).length > 0) {
+          // Device target online dengan data fresh
+          isPowerDeviceOnline = true;
+          lastSuccessfulUpdate = Date.now();
+          
+          updateDeviceStatus({
+            isOnline: true,
+            lastSeen: powerSensor.lastUpdate,
+            deviceId: targetDevice.deviceId
+          });
+
+          lastPowerData = powerSensor.data;
+          updateDisplayFromESP32(powerSensor.data);
+          checkSyncStatus(powerSensor.data);
+          
+        } else {
+          // Device target tidak online atau data tidak fresh
+          isPowerDeviceOnline = false;
+          setOfflineStatus();
+        }
+
+        loadHistory();
+      }
+
+      // PERBAIKAN: Cari device spesifik ESP32_5447A11F8A3C
+      function findTargetDevice(data) {
+        let targetDevice = null;
+        
+        // Cek semua sensor data untuk device yang sesuai
+        Object.keys(data.sensors).forEach(sensorType => {
+          const sensor = data.sensors[sensorType];
+          if (sensor.data && sensor.data.deviceId) {
+            const deviceId = sensor.data.deviceId;
+            if (deviceId === TARGET_DEVICE_ID) {
+              targetDevice = {
+                deviceId: deviceId,
+                sensorType: sensorType,
+                lastUpdate: sensor.lastUpdate
+              };
+              console.log("🎯 Target device found:", targetDevice);
+            }
+          }
+        });
+        
+        return targetDevice;
+      }
+
+      // PERBAIKAN: Cek kesegaran data power
+      function isPowerDataFresh(powerSensor) {
+        if (!powerSensor || !powerSensor.lastUpdate) return false;
+        
+        const lastUpdate = new Date(powerSensor.lastUpdate).getTime();
+        const now = Date.now();
+        const dataAge = now - lastUpdate;
+        
+        console.log(`🕒 Power Data age: ${dataAge}ms`);
+        
+        // Data dianggap fresh jika kurang dari 10 detik
+        return dataAge < 10000;
+      }
+
+      // PERBAIKAN BARU: Cek timeout koneksi
+      function checkConnectionTimeout() {
+        const now = Date.now();
+        if (lastSuccessfulUpdate > 0 && (now - lastSuccessfulUpdate) > OFFLINE_THRESHOLD) {
+          console.log("🕒 Power connection timeout detected");
+          setOfflineStatus();
+        }
+      }
+
+      // PERBAIKAN: Update device status khusus untuk device target
+      function updateDeviceStatus(status) {
+        const statusElement = document.getElementById("status");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+        const warningElement = document.getElementById("deviceWarning");
+        const connectionTimeElement = document.getElementById("connectionTime");
+        const connectionIndicator = statusElement.querySelector('.connection-status');
+
+        if (status.isOnline && isPowerDeviceOnline) {
+          statusElement.className = "online";
+          connectionIndicator.className = "connection-status connection-online";
+          statusElement.innerHTML = `<span class="connection-status connection-online"></span>✅ ONLINE - Terhubung ke Power Monitor`;
+          
+          if (status.lastSeen) {
+            const lastSeen = new Date(status.lastSeen);
+            const now = new Date();
+            const diffSeconds = Math.round((now - lastSeen) / 1000);
+            lastSeenElement.textContent = `Last seen: ${lastSeen.toLocaleString()} (${diffSeconds} detik lalu)`;
+            
+            // Hitung waktu koneksi
+            const connectionDuration = Math.round((now - lastSeen) / 1000);
+            connectionTimeElement.textContent = `Connection time: ${connectionDuration} detik`;
+          }
+
+          if (status.deviceId) {
+            deviceInfoElement.textContent = `Device ID: ${status.deviceId}`;
+          }
+
+          warningElement.style.display = "none";
+          
+        } else {
+          setOfflineStatus();
+        }
+      }
+
+      // PERBAIKAN: Set status offline
+      function setOfflineStatus() {
+        const statusElement = document.getElementById("status");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const warningElement = document.getElementById("deviceWarning");
+        const connectionTimeElement = document.getElementById("connectionTime");
+        const syncElement = document.getElementById("syncStatus");
+
+        isPowerDeviceOnline = false;
+        lastSuccessfulUpdate = 0;
+
+        statusElement.className = "offline";
+        const connectionIndicator = statusElement.querySelector('.connection-status') || document.createElement('span');
+        connectionIndicator.className = "connection-status connection-offline";
+        statusElement.innerHTML = `<span class="connection-status connection-offline"></span>🔴 OFFLINE - Power Monitor tidak terhubung`;
+        
+        deviceInfoElement.textContent = "Device ID: --";
+        lastSeenElement.textContent = "Last seen: --";
+        connectionTimeElement.textContent = "Connection time: --";
+        syncElement.style.display = "none";
+        
+        // Tampilkan warning spesifik
+        warningElement.style.display = "block";
+        warningElement.innerHTML = `⚠️ Device power monitor (${TARGET_DEVICE_ID}) offline. Pastikan device tersebut menyala dan terhubung WiFi`;
+        
+        // Reset display values
+        resetDisplayValues();
+      }
+
+      // PERBAIKAN: Reset display values ketika offline
+      function resetDisplayValues() {
+        document.getElementById("voltage").innerHTML = '--<span class="unit">V</span>';
+        document.getElementById("current").innerHTML = '--<span class="unit">A</span>';
+        document.getElementById("power").innerHTML = '--<span class="unit">W</span>';
+        document.getElementById("energy").innerHTML = '--<span class="unit">kWh</span>';
+        document.getElementById("frequency").innerHTML = '--<span class="unit">Hz</span>';
+        document.getElementById("powerFactor").textContent = '--';
+      }
+
+      // PERBAIKAN BARU: Update display berdasarkan data aktual dari ESP32
+      function updateDisplayFromESP32(data) {
+        console.log("🔄 Update Power Display from ESP32:", data);
+        
+        if (data.voltage !== undefined) {
+          document.getElementById("voltage").innerHTML =
+            data.voltage.toFixed(1) + '<span class="unit">V</span>';
+          document.getElementById("current").innerHTML =
+            data.current.toFixed(3) + '<span class="unit">A</span>';
+          document.getElementById("power").innerHTML =
+            data.power.toFixed(1) + '<span class="unit">W</span>';
+          document.getElementById("energy").innerHTML =
+            data.energy.toFixed(3) + '<span class="unit">kWh</span>';
+          document.getElementById("frequency").innerHTML =
+            data.frequency.toFixed(1) + '<span class="unit">Hz</span>';
+          document.getElementById("powerFactor").textContent =
+            data.power_factor?.toFixed(2) || "0.00";
+        }
+      }
+
+      // PERBAIKAN BARU: Cek status sinkronisasi
+      function checkSyncStatus(data) {
+        const syncElement = document.getElementById("syncStatus");
+        
+        if (data && data.voltage !== undefined) {
+          syncElement.style.display = "inline-block";
+          syncElement.className = "sync-status sync-ok";
+          syncElement.textContent = "✅ Data tersinkronisasi";
+        } else {
+          syncElement.style.display = "inline-block";
+          syncElement.className = "sync-status sync-warning";
+          syncElement.textContent = "⚠️ Menunggu data sensor...";
+        }
+      }
+
+      function loadHistory() {
+        fetch("/api/all/power")
+          .then((response) => response.json())
+          .then((data) => {
+            // Filter hanya data dari device target
+            const powerHistory = data.data.filter(item => 
+              item.deviceId && item.deviceId === TARGET_DEVICE_ID
+            );
+            updateTable(powerHistory.slice(-10));
+          })
+          .catch((error) => {
+            console.error("Error loading history:", error);
+          });
+      }
+
+      function updateTable(data) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #666;">Belum ada riwayat data dari ${TARGET_DEVICE_ID}</td></tr>`;
+          return;
+        }
+
+        data.reverse().forEach((item) => {
+          const status = item.deviceId ? "✅ Online" : "❌ Offline";
+          const row = `<tr>
+                    <td>${item.timestamp || "N/A"}</td>
+                    <td>${item.deviceId || "Unknown"}</td>
+                    <td>${item.voltage?.toFixed(1) || "0.0"}</td>
+                    <td>${item.current?.toFixed(3) || "0.000"}</td>
+                    <td>${item.power?.toFixed(1) || "0.0"}</td>
+                    <td>${status}</td>
+                </tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      function startAutoRefresh() {
+        refreshInterval = setInterval(() => {
+          loadData();
+        }, 3000);
+        showNotification("Auto refresh ON (3 detik)", "success");
+      }
+
+      function stopAutoRefresh() {
+        clearInterval(refreshInterval);
+        showNotification("Auto refresh OFF", "info");
+        loadData(); // Update status terakhir
+      }
+
+      function resetData() {
+        if (confirm("Yakin ingin mereset semua data power?")) {
+          fetch("/api/reset/power", { method: "DELETE" })
+            .then(() => {
+              loadData();
+              loadHistory();
+              showNotification("Data power berhasil direset!", "success");
+            })
+            .catch((error) => {
+              showNotification("Error resetting data: " + error, "error");
+            });
+        }
+      }
+
+      function showNotification(message, type) {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 15px 20px;
+          border-radius: 5px;
+          color: white;
+          font-weight: bold;
+          z-index: 1000;
+          animation: slideIn 0.3s ease;
+        `;
+
+        if (type === "success") {
+          notification.style.background = "#28a745";
+        } else if (type === "error") {
+          notification.style.background = "#dc3545";
+        } else {
+          notification.style.background = "#3498db";
+        }
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
+
+      // Load data pertama kali
+      loadData();
+
+      // Start auto refresh by default
+      startAutoRefresh();
+
+      // Cek connection timeout setiap 5 detik
+      setInterval(checkConnectionTimeout, 5000);
+
+      // Debug function
+      window.debugPower = function() {
+        console.log("🔧 Debug Power Status:");
+        console.log("- Target Device ID:", TARGET_DEVICE_ID);
+        console.log("- Power Device Online:", isPowerDeviceOnline);
+        console.log("- Last Data:", lastPowerData);
+        console.log("- Last Successful Update:", lastSuccessfulUpdate);
+        console.log("- Time Since Last Update:", Date.now() - lastSuccessfulUpdate);
+        loadData();
+      }
+    </script>
+  </body>
+</html>

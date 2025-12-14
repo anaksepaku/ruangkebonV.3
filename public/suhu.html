@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Suhu & Kelembaban - Ruang Kebon</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        color: #e67e22;
+      }
+      .back-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        min-width: 150px;
+        text-align: center;
+      }
+      .status-card {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 20px;
+        border-left: 5px solid #e67e22;
+      }
+      .value {
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .suhu-value {
+        color: #e67e22;
+      }
+      .kelembaban-value {
+        color: #3498db;
+      }
+      .heat-index-value {
+        color: #e74c3c;
+      }
+      .unit {
+        font-size: 14px;
+        color: #7f8c8d;
+      }
+      #status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+      .online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .data-table {
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #f1f1f1;
+      }
+      .controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+      }
+      .indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+      .normal {
+        background: #2ecc71;
+      }
+      .warning {
+        background: #f39c12;
+      }
+      .danger {
+        background: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back-button">← Kembali ke Dashboard</a>
+
+      <div class="header">
+        <h1>🌡️ Suhu & Kelembaban - Ruang Kebon</h1>
+        <p>Monitoring Kondisi Lingkungan Kebun</p>
+      </div>
+
+      <div class="card status-card">
+        <h3>Status Perangkat</h3>
+        <div id="status" class="offline">
+          🔴 OFFLINE - Menunggu koneksi perangkat...
+        </div>
+        <div id="deviceInfo">Device ID: Unknown</div>
+        <div id="lastSeen">Last seen: Never</div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Suhu</h3>
+          <div class="value suhu-value" id="suhu">
+            --<span class="unit">°C</span>
+          </div>
+          <div id="suhu-status"><span class="indicator"></span> Status</div>
+        </div>
+
+        <div class="card">
+          <h3>Kelembaban</h3>
+          <div class="value kelembaban-value" id="kelembaban">
+            --<span class="unit">%</span>
+          </div>
+          <div id="kelembaban-status">
+            <span class="indicator"></span> Status
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Heat Index</h3>
+          <div class="value heat-index-value" id="heat-index">
+            --<span class="unit">°C</span>
+          </div>
+          <div>Indeks Panas</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button onclick="loadData()">🔄 Refresh</button>
+        <button onclick="startAutoRefresh()">▶️ Auto Refresh</button>
+        <button onclick="stopAutoRefresh()">⏹️ Stop Auto</button>
+        <button onclick="resetData()">🗑️ Reset Data</button>
+      </div>
+
+      <div class="data-table">
+        <h3>Riwayat 10 Pembacaan Terakhir</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Suhu (°C)</th>
+              <th>Kelembaban (%)</th>
+              <th>Heat Index</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #e8f4f8;
+          border-radius: 8px;
+        "
+      >
+        <h4>📊 Panduan Interpretasi:</h4>
+        <p>
+          <span class="indicator normal"></span> Normal: Suhu 20-30°C,
+          Kelembaban 40-70%
+        </p>
+        <p>
+          <span class="indicator warning"></span> Warning: Suhu di luar range
+          normal
+        </p>
+        <p><span class="indicator danger"></span> Danger: Kondisi ekstrim</p>
+      </div>
+    </div>
+
+    <script>
+      let refreshInterval;
+
+      function loadData() {
+        fetch("/api/latest/suhu")
+          .then((response) => response.json())
+          .then((data) => {
+            updateDisplay(data);
+            updateDeviceStatus(data.device_status);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("status").className = "offline";
+            document.getElementById("status").textContent =
+              "❌ ERROR - Tidak dapat terhubung ke server";
+          });
+      }
+
+      function loadHistory() {
+        fetch("/api/all/suhu")
+          .then((response) => response.json())
+          .then((data) => {
+            updateTable(data.data.slice(-10));
+          })
+          .catch((error) => {
+            console.error("Error loading history:", error);
+          });
+      }
+
+      function updateDeviceStatus(status) {
+        const statusElement = document.getElementById("status");
+        const lastSeenElement = document.getElementById("lastSeen");
+        const deviceInfoElement = document.getElementById("deviceInfo");
+
+        if (status.isOnline) {
+          statusElement.className = "online";
+          statusElement.textContent = "✅ ONLINE - Terhubung ke Sensor DHT22";
+
+          if (status.lastSeen) {
+            const lastSeen = new Date(status.lastSeen);
+            lastSeenElement.textContent = `Last seen: ${lastSeen.toLocaleString()}`;
+          }
+
+          if (status.deviceId) {
+            deviceInfoElement.textContent = `Device ID: ${status.deviceId}`;
+          }
+        } else {
+          statusElement.className = "offline";
+          statusElement.textContent = "🔴 OFFLINE - Sensor tidak terhubung";
+        }
+      }
+
+      function updateDisplay(data) {
+        if (data.suhu !== undefined) {
+          // Update nilai
+          document.getElementById("suhu").innerHTML =
+            data.suhu.toFixed(1) + '<span class="unit">°C</span>';
+          document.getElementById("kelembaban").innerHTML =
+            data.kelembaban.toFixed(1) + '<span class="unit">%</span>';
+          document.getElementById("heat-index").innerHTML =
+            (data.heat_index || 0).toFixed(1) + '<span class="unit">°C</span>';
+
+          // Update status indikator
+          updateSuhuStatus(data.suhu);
+          updateKelembabanStatus(data.kelembaban);
+        }
+      }
+
+      function updateSuhuStatus(suhu) {
+        const indicator = document.querySelector("#suhu-status .indicator");
+        const statusText = document.querySelector("#suhu-status");
+
+        if (suhu >= 20 && suhu <= 30) {
+          indicator.className = "indicator normal";
+          statusText.innerHTML =
+            '<span class="indicator normal"></span> Normal';
+        } else if (suhu >= 15 && suhu <= 35) {
+          indicator.className = "indicator warning";
+          statusText.innerHTML =
+            '<span class="indicator warning"></span> Perhatian';
+        } else {
+          indicator.className = "indicator danger";
+          statusText.innerHTML =
+            '<span class="indicator danger"></span> Bahaya';
+        }
+      }
+
+      function updateKelembabanStatus(kelembaban) {
+        const indicator = document.querySelector(
+          "#kelembaban-status .indicator"
+        );
+        const statusText = document.querySelector("#kelembaban-status");
+
+        if (kelembaban >= 40 && kelembaban <= 70) {
+          indicator.className = "indicator normal";
+          statusText.innerHTML =
+            '<span class="indicator normal"></span> Normal';
+        } else if (kelembaban >= 30 && kelembaban <= 80) {
+          indicator.className = "indicator warning";
+          statusText.innerHTML =
+            '<span class="indicator warning"></span> Perhatian';
+        } else {
+          indicator.className = "indicator danger";
+          statusText.innerHTML =
+            '<span class="indicator danger"></span> Bahaya';
+        }
+      }
+
+      function updateTable(data) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        data.reverse().forEach((item) => {
+          const row = `<tr>
+                    <td>${item.timestamp || "N/A"}</td>
+                    <td>${item.suhu?.toFixed(1) || "0.0"}</td>
+                    <td>${item.kelembaban?.toFixed(1) || "0.0"}</td>
+                    <td>${item.heat_index?.toFixed(1) || "0.0"}</td>
+                    <td>${item.deviceId ? "✅ Online" : "❌ Offline"}</td>
+                </tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      function startAutoRefresh() {
+        refreshInterval = setInterval(() => {
+          loadData();
+          loadHistory();
+        }, 3000);
+        document.getElementById("status").textContent =
+          "🔄 Auto refresh ON (3s)";
+      }
+
+      function stopAutoRefresh() {
+        clearInterval(refreshInterval);
+        loadData(); // Update status terakhir
+      }
+
+      function resetData() {
+        if (confirm("Yakin ingin mereset semua data suhu?")) {
+          fetch("/api/reset/suhu", { method: "DELETE" })
+            .then(() => {
+              loadData();
+              loadHistory();
+              alert("Data suhu berhasil direset!");
+            })
+            .catch((error) => {
+              alert("Error resetting data: " + error);
+            });
+        }
+      }
+
+      // Load data pertama kali
+      loadData();
+      loadHistory();
+
+      // Auto refresh setiap 5 detik
+      setInterval(loadData, 5000);
+      setInterval(loadHistory, 10000);
+
+      // Start auto refresh by default
+      startAutoRefresh();
+    </script>
+  </body>
+</html>
